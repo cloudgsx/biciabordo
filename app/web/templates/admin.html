@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>biciabordo · tendencias</title>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+<body class="admin">
+<header class="ad-top">
+  <h1>tendencias <span>biciabordo</span></h1>
+  <nav>
+    {% for d in [7, 30, 90, 365] %}
+      <a href="?days={{ d }}" class="{{ 'on' if days == d }}">{{ d }} días</a>
+    {% endfor %}
+    <a href="/">← a la app</a>
+  </nav>
+</header>
+
+{% if data.empty %}
+  <p class="note">Todavía no hay búsquedas registradas en este periodo.</p>
+{% else %}
+
+<section class="kpis">
+  <div class="kpi"><b>{{ data.total }}</b><span>búsquedas</span></div>
+  <div class="kpi"><b>{{ data.solved }}</b><span>con solución</span></div>
+  <div class="kpi warn"><b>{{ data.total - data.solved }}</b><span>sin solución</span></div>
+  <div class="kpi"><b>{{ data.cost.median_hours }} h</b><span>mediana de viaje</span></div>
+  <div class="kpi"><b>{{ data.cost.median_trains or '—' }}</b><span>trenes (mediana)</span></div>
+  <div class="kpi"><b>{{ data.cost.median_bike_km or '—' }} km</b><span>bici (mediana)</span></div>
+  <div class="kpi"><b>{{ data.from_ui }} / {{ data.not_from_ui }}</b>
+      <span>desde la web / API directa</span></div>
+</section>
+
+<section>
+  <h2>1 · Corredores más buscados</h2>
+  <p class="note">Cada arco es un par origen→destino. En rojo, los que nadie consigue resolver.</p>
+  <div id="map"></div>
+  <table>
+    <tr><th>Origen</th><th>Destino</th><th>Búsquedas</th><th>Resueltas</th></tr>
+    {% for c in data.corridors %}
+    <tr class="{{ 'bad' if c.solved == 0 }}">
+      <td>{{ c['from'] }}</td><td>{{ c.to }}</td>
+      <td class="n">{{ c.n }}</td>
+      <td class="n">{{ c.solved }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+
+<section>
+  <h2>2 · Búsquedas sin solución</h2>
+  <p class="note">Existen estaciones en los dos extremos, pero no hay forma de
+     enlazarlas con la bici montada. Esto es lo que no puede publicar nadie más.</p>
+  {% if data.failures %}
+  <table>
+    <tr><th>Origen</th><th>Destino</th><th>Veces</th></tr>
+    {% for f in data.failures %}
+    <tr class="bad"><td>{{ f['from'] }}</td><td>{{ f.to }}</td><td class="n">{{ f.n }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="note">Ninguna. Todo lo buscado tenía solución.</p>{% endif %}
+</section>
+
+<section>
+  <h2>3 · Sitios sin estación al alcance</h2>
+  <p class="note">Dónde quiere ir la gente y la red ni siquiera llega cerca.</p>
+  {% if data.stationless %}
+    {% set top = data.stationless[0].n %}
+    {% for s in data.stationless %}
+      <div class="bar"><span class="lbl">{{ s.place }}</span>
+        <span class="track"><i style="width: {{ (s.n / top * 100)|round(1) }}%"></i></span>
+        <span class="n">{{ s.n }}</span></div>
+    {% endfor %}
+  {% else %}<p class="note">Ninguno.</p>{% endif %}
+</section>
+
+<section>
+  <h2>4 · Impacto de los cortes por obras</h2>
+  {% if data.closures %}
+    {% set top = data.closures[0].n %}
+    {% for c in data.closures %}
+      <div class="bar"><span class="lbl">{{ c.line }}</span>
+        <span class="track"><i class="warnbar" style="width: {{ (c.n / top * 100)|round(1) }}%"></i></span>
+        <span class="n">{{ c.n }}</span></div>
+    {% endfor %}
+  {% else %}<p class="note">Ninguna búsqueda ha chocado con un corredor cortado.</p>{% endif %}
+</section>
+
+<section>
+  <h2>5 · Estaciones y lugares más pedidos</h2>
+  {% if data.busiest %}
+    {% set top = data.busiest[0].n %}
+    {% for b in data.busiest %}
+      <div class="bar"><span class="lbl">{{ b.place }}</span>
+        <span class="track"><i style="width: {{ (b.n / top * 100)|round(1) }}%"></i></span>
+        <span class="n">{{ b.n }}</span></div>
+    {% endfor %}
+  {% endif %}
+</section>
+
+<section>
+  <h2>6 · Qué opciones activa la gente</h2>
+  {% for o in data.options %}
+    <div class="bar"><span class="lbl">{{ o.name }}</span>
+      <span class="track"><i style="width: {{ (o.n / data.total * 100)|round(1) }}%"></i></span>
+      <span class="n">{{ (o.n / data.total * 100)|round(0)|int }}%</span></div>
+  {% endfor %}
+</section>
+
+<section>
+  <h2>Búsquedas por día</h2>
+  <div class="spark">
+    {% set peak = (data.daily | map(attribute='n') | max) or 1 %}
+    {% for d in data.daily %}
+      <span class="col" title="{{ d.day }}: {{ d.n }} ({{ d.failed }} sin solución)">
+        <i class="fail" style="height: {{ (d.failed / peak * 100)|round(1) }}%"></i>
+        <i class="ok" style="height: {{ ((d.n - d.failed) / peak * 100)|round(1) }}%"></i>
+      </span>
+    {% endfor %}
+  </div>
+</section>
+
+<section>
+  <h2>A qué hora se busca</h2>
+  <p class="note">Las personas se concentran en horas de vigilia. Un reparto plano
+     a lo largo del día, o un pico de madrugada, delata tráfico automatizado.</p>
+  <div class="hours">
+    {% set peak = (data.hourly | map(attribute='n') | max) or 1 %}
+    {% for h in data.hourly %}
+      <span class="hcol" title="{{ '%02d'|format(h.hour) }}:00 — {{ h.n }} búsquedas">
+        <i style="height: {{ (h.n / peak * 100)|round(1) }}%"></i>
+        <em>{{ '%02d'|format(h.hour) }}</em>
+      </span>
+    {% endfor %}
+  </div>
+</section>
+
+<footer class="ad-foot">
+  <p>Datos anónimos y agregados: sin IP, sin cookies de seguimiento, sin sesión,
+     sin el texto que escribe la gente. Coordenadas redondeadas a ~1 km y hora
+     truncada. No identifica a nadie.</p>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const CORRIDORS = {{ data.corridors | tojson }};
+</script>
+<script src="{{ url_for('static', filename='admin.js') }}"></script>
+{% endif %}
+</body>
+</html>

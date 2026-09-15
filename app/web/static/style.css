@@ -1,0 +1,251 @@
+:root {
+  --bg: #11151a;
+  --panel: #171c23;
+  --card: #1e252e;
+  --line: #2a323d;
+  --text: #e6ebf1;
+  --muted: #8f9bab;
+  --accent: #4ea3ff;
+  --bike: #47c97e;
+  --warn: #e5a54b;
+  --free: #47c97e;
+  --reserved: #e5a54b;
+  --partial: #d2708a;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+#layout { display: flex; height: 100%; }
+#panel {
+  width: 440px;
+  flex: none;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+  padding: 22px;
+}
+#map { flex: 1; }
+
+header h1 { margin: 0; font-size: 26px; letter-spacing: -0.5px; }
+.brand { display: flex; align-items: center; gap: 11px; }
+.brand .logo { width: 96px; height: 50px; flex: none; }
+.brand .word { color: var(--text); }
+.brand .word span { color: var(--accent); }
+/* The marque takes its colours from the palette, so it follows the theme. */
+.logo .coach    { stroke: var(--muted); }
+.logo .windows  { fill: var(--muted); opacity: .5; }
+.logo .bike     { stroke: var(--accent); }
+.logo .rail     { stroke: var(--text); }
+.logo .sleepers { stroke: var(--muted); }
+.sub { color: var(--muted); font-size: 13px; margin: 6px 0 20px; }
+
+.field { position: relative; margin-bottom: 12px; flex: 1; }
+label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+input[type=text], input:not([type]), input[type=date], input[type=time] {
+  width: 100%; padding: 9px 11px;
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px;
+  font-size: 14px; font-family: inherit;
+}
+input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.row { display: flex; gap: 12px; }
+
+.suggest {
+  position: absolute; z-index: 900; top: 100%; left: 0; right: 0;
+  margin: 4px 0 0; padding: 4px; list-style: none;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 8px; max-height: 240px; overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+}
+.suggest li { padding: 7px 9px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.suggest li:hover, .suggest li[aria-selected=true] { background: #26303c; }
+.suggest .tag {
+  float: right; font-size: 10px; text-transform: uppercase;
+  color: var(--muted); letter-spacing: .5px; padding-top: 2px;
+}
+
+#advanced { margin: 6px 0 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+#advanced > summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.slider { display: block; margin: 12px 0; font-size: 13px; color: var(--muted); }
+.slider output { float: right; color: var(--text); font-variant-numeric: tabular-nums; }
+.slider input { width: 100%; margin-top: 6px; accent-color: var(--accent); }
+.check { display: flex; gap: 8px; align-items: baseline; font-size: 13px; color: var(--text); margin: 10px 0; }
+.check input { flex: none; }
+.check > span { flex: 1; }
+.check em { color: var(--muted); font-style: normal; font-size: 12px; }
+.check.muted, .slider.muted { opacity: .45; }
+
+button#go {
+  width: 100%; padding: 11px; border: 0; border-radius: 9px;
+  background: var(--accent); color: #06121f; font-weight: 650; font-size: 15px;
+  cursor: pointer; font-family: inherit;
+}
+button#go:hover { filter: brightness(1.08); }
+button#go:disabled { opacity: .55; cursor: progress; }
+
+#status { margin: 14px 0; font-size: 13px; }
+.warn {
+  background: #2c2415; border: 1px solid #5a4620; color: var(--warn);
+  padding: 9px 11px; border-radius: 8px; margin-bottom: 8px; font-size: 12.5px;
+}
+
+.uncovered {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 11px; padding: 13px 14px; margin-bottom: 12px;
+}
+.uncovered > p { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
+.uncovered strong { color: var(--text); }
+.stations { display: flex; flex-direction: column; gap: 6px; }
+.station-chip {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  width: 100%; text-align: left; cursor: pointer; font-family: inherit;
+  background: #232c37; border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 11px; color: var(--text);
+}
+.station-chip:hover { border-color: var(--accent); background: #26313e; }
+.station-chip .nm { font-size: 13.5px; font-weight: 560; }
+.station-chip .dist { font-size: 11.5px; color: var(--bike); white-space: nowrap; }
+.station-chip .climb { color: var(--warn); }
+.rank-note { margin: -4px 0 9px; font-size: 11.5px; color: var(--muted); font-style: italic; }
+.widen {
+  width: 100%; margin-top: 10px; padding: 9px; cursor: pointer; font-family: inherit;
+  background: transparent; color: var(--accent);
+  border: 1px dashed #3c5a7a; border-radius: 8px; font-size: 13px;
+}
+.widen:hover { background: #1a2635; }
+.far-note { margin: 10px 0 0; font-size: 11.5px; color: var(--muted); }
+
+.journey {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 11px; margin-bottom: 12px; overflow: hidden;
+  cursor: pointer; transition: border-color .12s;
+}
+.journey:hover { border-color: #3b4756; }
+.journey.active { border-color: var(--accent); }
+/* Several departures at once means the list is read as a timetable and opened
+   one at a time, so the summary alone has to carry the whole trade-off. */
+.journey > summary { list-style: none; cursor: pointer; }
+.journey > summary::-webkit-details-marker { display: none; }
+.j-chev {
+  flex: none; align-self: center; color: var(--muted);
+  font-size: 16px; line-height: 1; transition: transform .15s;
+}
+.journey[open] .j-chev { transform: rotate(180deg); }
+/* What each journey is best at. A slower option is a different trade, not a
+   worse answer, and the list is unreadable if it does not say which. */
+.j-why {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  padding: 7px 14px; background: #171d26; border-bottom: 1px solid var(--line);
+}
+.why {
+  font-size: 10.5px; font-weight: 600; letter-spacing: .02em;
+  padding: 1px 7px; border-radius: 20px;
+  background: #17331f; color: var(--bike);
+}
+.j-head { padding: 12px 14px; display: flex; justify-content: space-between; gap: 10px; }
+.j-when { font-size: 15px; font-weight: 620; }
+.j-when small { color: var(--muted); font-weight: 400; }
+.j-meta { text-align: right; font-size: 12px; color: var(--muted); line-height: 1.7; }
+.pill {
+  display: inline-block; padding: 1px 7px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; margin-left: 4px;
+}
+.pill.days { background: #3a2c14; color: var(--warn); }
+.pill.km { background: #17331f; color: var(--bike); }
+
+.legs { border-top: 1px solid var(--line); padding: 4px 14px 12px; }
+.leg { display: flex; gap: 10px; padding: 7px 0; font-size: 13px; }
+.leg .t {
+  flex: none; width: 78px; color: var(--muted);
+  font-variant-numeric: tabular-nums; font-size: 12px;
+}
+.leg .body { flex: 1; }
+.leg .svc {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  padding: 1px 6px; border-radius: 4px; margin-right: 6px;
+  background: #26303c; color: var(--text);
+}
+.leg.free .svc { background: #16331f; color: var(--free); }
+.leg.reserved .svc { background: #382c15; color: var(--reserved); }
+.leg.partial .svc { background: #3a2029; color: var(--partial); }
+.leg .note { color: var(--muted); font-size: 11.5px; display: block; margin-top: 2px; }
+.leg.bike .body { color: var(--bike); }
+.leg.change .body { color: var(--muted); }
+.leg .op { font-size: 10.5px; text-transform: uppercase; letter-spacing: .4px;
+           color: var(--accent); margin-right: 6px; }
+.leg.gap .body { color: var(--muted); font-size: 12px; }
+.leg.overnight .body { color: var(--warn); }
+
+footer { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line);
+         color: var(--muted); font-size: 11.5px; }
+footer p { margin: 4px 0; }
+footer a { color: var(--muted); }
+footer a:hover { color: var(--text); }
+
+/* The bike rules are inferred from product names, not published by Renfe, so a
+   public page has to say so plainly rather than bury it in a README. */
+.disclaimer {
+  background: #2c2415; border: 1px solid #5a4620; color: var(--warn);
+  padding: 9px 11px; border-radius: 8px; margin: 0 0 12px !important;
+  font-size: 11.5px; line-height: 1.45;
+}
+.disclaimer strong { color: #f4c66a; }
+
+/* ConAlforjas asked for the plain name in their yellow. Sits above the data
+   credits and a notch larger, since it is a collaborator rather than a footnote. */
+.credit { font-size: 12.5px; margin-bottom: 10px !important; }
+.credit a {
+  color: #f1d836; font-weight: 600; text-decoration: none;
+  border-bottom: 1px solid rgba(241, 216, 54, .45);
+}
+.credit a:hover { border-bottom-color: #f1d836; }
+
+/* The map defaults to the light basemap -- a route drawn in greens and ambers
+   reads better on it -- and the toggle in the corner switches and remembers. */
+.leaflet-container { background: #e9edf1; }
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #fff; color: #11151a; }
+body.map-dark .leaflet-container { background: #0d1116; }
+body.map-dark .leaflet-popup-content-wrapper,
+body.map-dark .leaflet-popup-tip { background: var(--card); color: var(--text); }
+.map-theme {
+  display: flex; overflow: hidden;
+  background: #fff; border: 1px solid rgba(0,0,0,.28); border-radius: 7px;
+  box-shadow: 0 1px 5px rgba(0,0,0,.4);
+  font: 600 11.5px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.map-theme button {
+  border: 0; background: transparent; color: #46505d;
+  padding: 8px 12px; cursor: pointer; font: inherit;
+}
+.map-theme button + button { border-left: 1px solid rgba(0,0,0,.16); }
+.map-theme button:hover { background: #eef2f6; }
+.map-theme button.on { background: var(--accent); color: #06121f; }
+
+@media (max-width: 900px) {
+  #layout { flex-direction: column; }
+  #panel { width: 100%; height: 60%; border-right: 0; border-bottom: 1px solid var(--line); }
+  #map { height: 40%; }
+}
+
+/* Share link on each departure card. */
+.share {
+  flex: none; background: transparent; border: 1px solid transparent;
+  border-radius: 7px; cursor: pointer; font-size: 14px; line-height: 1;
+  padding: 4px 6px; opacity: .5; transition: opacity .12s, border-color .12s;
+}
+.journey:hover .share, .journey[open] .share { opacity: 1; }
+.share:hover { border-color: var(--line); background: #26303c; }
+.share.copied { opacity: 1; color: var(--bike); }
+/* No hover on a phone, which is where links actually get shared. */
+@media (hover: none) { .share { opacity: 1; } }
+.warn input {
+  width: 100%; font-size: 12px; padding: 6px 8px; margin-top: 4px;
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--line); border-radius: 6px;
+}

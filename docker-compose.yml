@@ -1,0 +1,40 @@
+services:
+  bicitren:
+    build: .
+    container_name: bicitren
+    ports:
+      - "8022:8022"
+    volumes:
+      - bicitren-data:/app/data
+    restart: unless-stopped
+    environment:
+      BICITREN_DB: data/bicitren.sqlite
+      # Gunicorn's sync workers each handle one request at a time, so this is the
+      # concurrency limit, not just a throughput knob: with 2, the third
+      # simultaneous search waited behind the first two while ten of the host's
+      # twelve cores sat idle. A warm search costs ~0.37 s of CPU and a worker
+      # holds its own copy of the timetable (~175 MB), so six is a comfortable
+      # fit here. Change it and restart -- no rebuild needed.
+      WEB_CONCURRENCY: "6"
+      # Private trends page at /admin. With no token it 404s, so leaving this
+      # unset disables it entirely. Put Cloudflare Access in front of /admin for
+      # real authentication; this is only a second lock.
+      BICITREN_ADMIN_TOKEN: "${BICITREN_ADMIN_TOKEN:-}"
+
+  # Nightly rebuild so the rolling Cercanías window never goes stale.
+  refresher:
+    build: .
+    container_name: bicitren-refresh
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          sleep 86400
+          python -m app.gtfs.ingest --db data/bicitren.sqlite || echo "refresh failed"
+        done
+    volumes:
+      - bicitren-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  bicitren-data:

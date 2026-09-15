@@ -1,0 +1,18 @@
+.venv/
+data/
+__pycache__/
+*.pyc
+
+# macOS resource forks. These travelled into the server and then into the
+# Docker image -- 22 of them are sitting in the running container right now.
+.DS_Store
+._*
+
+# An August snapshot of app/, kept as a safety copy. Dead code, not history.
+app.claude-aug/
+.claude/
+
+# Secrets: the admin token lives here on the server and must never be committed.
+.env
+*.env
+!example.env

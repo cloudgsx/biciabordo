@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>biciabordo · cruzar España en tren con la bici</title>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg', v=assets) }}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=assets) }}">
+</head>
+<body>
+<div id="layout">
+  <aside id="panel">
+    <header>
+      <h1 class="brand">
+        <!-- Inline rather than an <img> so the marque inherits the CSS colour
+             variables: change the accent once and the logo follows. -->
+        <svg class="logo" viewBox="0 0 150 78" role="img" aria-label="biciabordo">
+          <g class="coach" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 10h112a7 7 0 0 1 7 7v30H9V17a7 7 0 0 1 7-7z" stroke-width="3"/>
+          </g>
+          <g class="windows">
+            <rect x="18" y="18" width="17" height="12" rx="2.5"/>
+            <rect x="41" y="18" width="17" height="12" rx="2.5"/>
+            <rect x="103" y="18" width="17" height="12" rx="2.5"/>
+            <rect x="126" y="18" width="8" height="12" rx="2.5"/>
+          </g>
+          <g class="bike" fill="none" stroke-linecap="round" stroke-linejoin="round"
+             transform="translate(34,16) scale(.86)">
+            <circle cx="20" cy="44" r="15" stroke-width="2.4"/>
+            <circle cx="76" cy="44" r="15" stroke-width="2.4"/>
+            <path d="M20 44h24l-11-26M44 44l22-20M33 18h31M33 18L20 44M66 26l10 18" stroke-width="3"/>
+            <path d="M28 17h11" stroke-width="3"/>
+            <path d="M64 19h5a4.5 4.5 0 0 1 0 9h-1" stroke-width="3"/>
+            <circle cx="44" cy="44" r="3.4" stroke-width="2.4"/>
+          </g>
+          <path class="rail" d="M2 72h146" fill="none" stroke-width="3.2" stroke-linecap="round"/>
+          <g class="sleepers" fill="none" stroke-width="2.4" stroke-linecap="round">
+            <path d="M16 72v6M50 72v6M100 72v6M134 72v6"/>
+          </g>
+        </svg>
+        <span class="word">bici<span>abordo</span></span>
+      </h1>
+      <p class="sub">Combinaciones de Cercanías, Rodalies, Regional y Media Distancia
+         donde la bici viaja <strong>montada</strong>. Sin desmontar, sin funda.</p>
+    </header>
+
+    <form id="form" autocomplete="off">
+      <div class="field">
+        <label for="origin">Desde</label>
+        <input id="origin" placeholder="Barcelona, una vía verde, un pueblo…" required>
+        <ul class="suggest" id="origin-suggest" hidden></ul>
+      </div>
+      <div class="field">
+        <label for="destination">Hasta</label>
+        <input id="destination" placeholder="Oviedo, Calera y Chozas…" required>
+        <ul class="suggest" id="destination-suggest" hidden></ul>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="date">Fecha</label>
+          <input id="date" type="date" value="{{ meta.default_day }}"
+                 min="{{ meta.default_day }}" max="{{ meta.last_day }}">
+        </div>
+        <div class="field">
+          <label for="time" id="time-label">Hora</label>
+          <input id="time" type="time" value="07:00">
+        </div>
+      </div>
+
+      <details id="advanced">
+        <summary>Opciones</summary>
+        <label class="slider">
+          Salidas a mostrar <output id="departures-out">4</output>
+          <input id="departures" type="range" min="1" max="8" value="4">
+        </label>
+        <label class="slider">
+          Radio en bici hasta la estación <output id="access-out">20 km</output>
+          <input id="access" type="range" min="2" max="45" value="20">
+        </label>
+        <label class="slider">
+          Kilómetros en bici entre trenes <output id="transfer-out">60 km</output>
+          <input id="transfer" type="range" min="0" max="150" step="5" value="60">
+        </label>
+        <label class="slider">
+          Días de margen <output id="days-out">4</output>
+          <input id="days" type="range" min="1" max="5" value="4">
+        </label>
+        <label class="slider">
+          Máximo de trenes <output id="trains-out">12</output>
+          <input id="trains" type="range" min="2" max="12" value="12">
+        </label>
+        <label class="check"><input id="whole-day" type="checkbox">
+          <span>Buscar la mejor combinación del día
+          <em>la hora pasa a ser «no antes de». Pon 00:00 para el día entero.</em>
+          </span></label>
+        <label class="check"><input id="other-operators" type="checkbox">
+          <span>Aceptar otros operadores <em>({{ operators }}). Llegan donde
+          Renfe no: La Pobla de Segur, la costa vasca.</em></span></label>
+        <label class="check"><input id="free-only" type="checkbox">
+          <span>Solo Cercanías y Rodalies
+          <em>la bici sube gratis y sin reservar. Deja fuera la media distancia,
+          que necesita el extra Tren+Bici y tiene ~3 plazas.</em></span></label>
+        <label class="check"><input id="allow-avant" type="checkbox">
+          <span>Aceptar Avant <em>(plaza de bici solo en algunas unidades)</em></span></label>
+        <label class="check"><input id="night" type="checkbox">
+          <span>Permitir pedalear de noche entre estaciones</span></label>
+      </details>
+
+      <button type="submit" id="go">Buscar combinaciones</button>
+    </form>
+
+    <div id="status"></div>
+    <div id="results"></div>
+
+    <footer>
+      <p class="disclaimer">Las condiciones de la bici se deducen del tipo de tren,
+         <strong>no son oficiales</strong>: Renfe no publica esa información en sus
+         datos abiertos. Las plazas para bici son limitadas y aquí no se ve su
+         disponibilidad. <strong>Confirma siempre en Renfe antes de viajar.</strong></p>
+      <p class="credit">Con la inestimable colaboración de
+         <a href="https://conalforjas.com/" target="_blank"
+            rel="noopener noreferrer">ConAlforjas</a></p>
+      <p>Horarios: GTFS oficial de Renfe (Cercanías/Rodalies/ancho métrico + media y
+         larga distancia). Cercanías publicado solo hasta
+         <strong>{{ meta.cercanias_last_day }}</strong>.</p>
+      <p>Lugares: <a href="https://www.geonames.org/" target="_blank"
+         rel="noopener noreferrer">GeoNames</a> (CC BY 4.0).</p>
+      <p>Base construida el {{ meta.built_at }}.</p>
+    </footer>
+  </aside>
+  <main id="map"></main>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='app.js', v=assets) }}"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- A whole road bike cannot survive 16 px, so the favicon keeps only what
+       still reads at that size: two wheels, a frame, a hint of drop bar, and the
+       rail under them. The rail is mid-grey rather than white or dark, because a
+       favicon sits on whatever colour the browser's tab strip happens to be. -->
+  <g fill="none" stroke="#4ea3ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="18" cy="30" r="12"/>
+    <circle cx="46" cy="30" r="12"/>
+    <path d="M18 30h14l-6-14M32 30l12-11M26 16h16M44 19h3a3 3 0 0 1 0 6"/>
+  </g>
+  <path d="M2 52h60" fill="none" stroke="#8f9bab" stroke-width="5" stroke-linecap="round"/>
+</svg>
